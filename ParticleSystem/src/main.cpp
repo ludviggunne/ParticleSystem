@@ -12,21 +12,23 @@
 // Settings
 const glm::vec4 background_color(0.2f);
 
-const unsigned int pool_size = 1000;
-const int emit_batch_size = 20;
+const unsigned int pool_size = 4000;
+const int emit_batch_size = 10;
 
-const float lifetime = .5f;
+const float lifetime = 1.0f;
 
-const glm::vec4 color_begin(1.0f, 0.3f, 0.0f, 1.0f);
-const glm::vec4 color_end(0.0f, 0.0f, 1.0f, 0.2f);
+const glm::vec4 color_begin(1.0f, 0.7f, 0.0f, 1.0f);
+const glm::vec4 color_end(1.0f, 0.2f, 0.0f, 0.2f);
 
-const float size_begin = 15.0f;
-const float size_end   = 0.0f;
+const float size_begin = 25.0f;
+const float size_end   = 2.0f;
 
 const float size_variation     = 0.0f;
-const float velocity_variation = 1500.0f;
+const float velocity_variation = 750.0f;
 const float rotation_variation = 12.0f;
 const float lifetime_variation = 1.0f;
+
+const float gravity = 2000.0f;
 
 const int window_width  = 800;
 const int window_height = 600;
@@ -293,7 +295,7 @@ int main() {
 				rotations[emit_index] = rotation_variation * (randf() - .5f);
 				begin_rotations[emit_index] = rotation_variation * (randf() - .5f);
 
-				velocities[emit_index] = velocity_variation * glm::vec2(randf() - .5f, randf() - .5f);
+				velocities[emit_index] = velocity_variation * randf() * glm::normalize(glm::vec2(randf() - .5f, randf() - .5f));
 				lifetimes[emit_index] = lifetime + lifetime_variation * (randf() - .5f);
 
 
@@ -325,13 +327,13 @@ int main() {
 				}
 
 				positions[i] += velocities[i] * delta_time;
-				auto t = lifetimes[i] / lifetime;
-
+				velocities[i].y += gravity * delta_time;
 
 
 				// Fill buffers
-				auto psize = end_sizes[i] + t * (begin_sizes[i] - end_sizes[i]);
+				auto t = lifetimes[i] / lifetime;
 				auto pcolor = color_end + t * (color_begin - color_end);
+				auto psize = end_sizes[i] + t * (begin_sizes[i] - end_sizes[i]);
 				auto ppos = glm::vec4(positions[i], 0, 0);
 				auto rotation = rotations[i] * t + begin_rotations[i];
 
