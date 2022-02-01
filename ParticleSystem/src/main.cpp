@@ -10,23 +10,27 @@
 
 
 // Settings
-const glm::vec4 background_color(0.2f);
+const glm::vec4 background_color(0.1f);
 
-const unsigned int pool_size = 4000;
-const int emit_batch_size = 10;
+const bool bounce = true;
+const float bounce_damping = .75f;
+const float friction = .95f;
+
+const unsigned int pool_size = 6000;
+const int emit_batch_size = 120;
 
 const float lifetime = 1.0f;
 
-const glm::vec4 color_begin(1.0f, 0.7f, 0.0f, 1.0f);
-const glm::vec4 color_end(1.0f, 0.2f, 0.0f, 0.2f);
+const glm::vec4 color_begin(0.2f, 0.4f, 1.0f, 1.0f);
+const glm::vec4 color_end(1.0f, 1.0f, 1.0f, 0.2f);
 
 const float size_begin = 25.0f;
-const float size_end   = 2.0f;
+const float size_end   = 5.0f;
 
-const float size_variation     = 0.0f;
-const float velocity_variation = 750.0f;
-const float rotation_variation = 12.0f;
-const float lifetime_variation = 1.0f;
+const float size_variation     = 5.0f;
+const float velocity_variation = 600.0f;
+const float rotation_variation = 14.0f;
+const float lifetime_variation = 2.0f;
 
 const float gravity = 2000.0f;
 
@@ -142,16 +146,18 @@ float lifetimes      [pool_size];
 
 
 
-void resizeCallback(GLFWwindow *window, int width, int height) {
-	GLcall(glViewport(0, 0, width, height));
+void resizeCallback(GLFWwindow *window, int w, int h) {
+	GLcall(glViewport(0, 0, w, h));
 	projection = glm::ortho(
 		0.0f,
-		static_cast<float>(width),
-		static_cast<float>(height),
+		static_cast<float>(w),
+		static_cast<float>(h),
 		0.0f,
 		-1.0f,
 		10.0f
 	);
+	width = w;
+	height = h;
 }
 
 glm::mat4 getView() {
@@ -270,6 +276,8 @@ int main() {
 	// Timing
 	float delta_time = 1.0f / 60;
 
+	auto prev_mouse = glm::vec2(0.0f);
+
 	// Loop
 	while (!glfwWindowShouldClose(window)) {
 
@@ -281,9 +289,15 @@ int main() {
 		GLcall(glClearColor(background_color.r, background_color.g, background_color.b, background_color.a));
 
 
+		// Get mouse pos
+		double xpos, ypos;
+		glfwGetCursorPos(window, &xpos, &ypos);
+		auto mouse = glm::vec2(static_cast<float>(xpos), static_cast<float>(ypos));
+
 		// Poll inputs
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 		{
+
 			for (int i = 0; i < emit_batch_size; i++)
 			{
 				// Emit particle
@@ -299,14 +313,28 @@ int main() {
 				lifetimes[emit_index] = lifetime + lifetime_variation * (randf() - .5f);
 
 
-				// Get mouse pos
-				double xpos, ypos;
-				glfwGetCursorPos(window, &xpos, &ypos);
-				positions[emit_index] = glm::vec2(static_cast<float>(xpos), static_cast<float>(ypos));
+				positions[emit_index] = mouse + randf() * (prev_mouse - mouse);
 
 
 				// Shift emit index
 				emit_index = (emit_index + pool_size - 1) % pool_size;
+
+			}
+
+		}
+		prev_mouse = mouse;
+
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)
+		{
+			for (int i = 0; i < pool_size; i++)
+			{
+				double xpos, ypos;
+				glfwGetCursorPos(window, &xpos, &ypos);
+				glm::vec2 attractor(static_cast<float>(xpos), static_cast<float>(ypos));
+
+				if (active_states[i]) {
+					velocities[i] -= 100.0f * (positions[i] - attractor) / glm::length(positions[i] - attractor);
+				}
 			}
 		}
 		
@@ -320,14 +348,22 @@ int main() {
 			if (active_states[i]) {
 
 				// Update particle
-				lifetimes[i] -= delta_time;
-				if (lifetimes[i] <= 0) {
-					active_states[i] = false;
-					continue;
+				if (lifetime > 0)
+				{
+					lifetimes[i] -= delta_time;
+					if (lifetimes[i] <= 0) {
+						active_states[i] = false;
+						continue;
+					}
 				}
 
 				positions[i] += velocities[i] * delta_time;
 				velocities[i].y += gravity * delta_time;
+				if (positions[i].y > height && bounce)
+				{
+					velocities[i].x *= friction;
+					velocities[i].y *= -bounce_damping * randf();
+				}
 
 
 				// Fill buffers
