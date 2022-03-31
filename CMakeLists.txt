@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.15)
 
 project(ParticleSystem)
 
+set(CMAKE_CXX_STANDARD 17)
+
 add_subdirectory(extern/glfw)
 
 add_executable(ParticleSystem src/main.cpp extern/glad/src/glad.c)
