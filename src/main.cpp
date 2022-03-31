@@ -11,26 +11,26 @@
 
 
 // Settings
-const glm::vec4 background_color(0.1f);
+const glm::vec4 background_color(0.3f);
 
-const bool bounce = true;
+const bool bounce = false;
 const float bounce_damping = .75f;
 const float friction = .95f;
 
-const unsigned int pool_size = 6000;
-const int emit_batch_size = 120;
+const unsigned int pool_size = 2000;
+const int emit_batch_size = 50;
 
 const float lifetime = 1.0f;
 
-const glm::vec4 color_begin(0.2f, 0.4f, 1.0f, 1.0f);
-const glm::vec4 color_end(1.0f, 1.0f, 1.0f, 0.2f);
+const glm::vec4 color_begin(1.0f, 1.0f, 0.0f, 1.0f);
+const glm::vec4 color_end(1.0f, 0.1f, 0.0f, 0.2f);
 
 const float size_begin = 25.0f;
-const float size_end   = 5.0f;
+const float size_end   = 0.0f;
 
 const float size_variation     = 5.0f;
 const float velocity_variation = 600.0f;
-const float rotation_variation = 14.0f;
+const float rotation_variation = 180.0f;
 const float lifetime_variation = 2.0f;
 
 const float gravity = 2000.0f;
