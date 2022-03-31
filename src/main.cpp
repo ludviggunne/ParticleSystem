@@ -4,6 +4,7 @@
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
+#pragma warning(disable: 5033) // warning C5033: 'register' is no longer a supported storage class
 #include "glm/glm.hpp"
 #include "glm/ext.hpp"
 
