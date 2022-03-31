@@ -54,6 +54,9 @@ int height = window_height;
 
 // Open GL
 // Errors
+
+#define EXIT() exit(-1)
+
 void GLclearError() {
 	while (glGetError() != GL_NO_ERROR) {}
 }
@@ -66,8 +69,9 @@ void GLlogError(int line) {
 		brk = true;
 	}
 
- 	if (brk) __debugbreak();
+ 	if (brk) EXIT();
 }
+
 
 #ifdef _DEBUG
 #define GLcall(expr) GLclearError(); expr; GLlogError(__LINE__)
@@ -228,7 +232,7 @@ int main() {
 	if (!status) {
 		GLcall(glGetProgramInfoLog(shader_program, 512, 0, log));
 		std::cout << "Shader program linking error: " << log << "\n";
-		__debugbreak();
+		EXIT();
 	}
 
 	GLcall(glDeleteShader(vertex_shader));
